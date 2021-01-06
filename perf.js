@@ -1,9 +1,10 @@
 /* eslint-disable brace-style */
 /* eslint-disable no-unused-vars */
+
 const md5 = require('md5');
 
 const timeMS = (prevTime = 0) => {return Date.now() - prevTime;};
-const rndInt = (max) => {return Math.floor(Math.random() * max) + 1;};
+const rndInt = (max) => Math.floor(Math.random() * max) + 1;
 const hash = (value) => {return md5(value+'');};
 const clog = (...args) => {console.log(args);};
 
