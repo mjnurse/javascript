@@ -1,0 +1,61 @@
+#!/bin/bash
+
+if [[ "$4" == "" ]]; then
+  echo 'Usage: jsf <function_name> <param_name> <datatype> <default_value> [...]'
+  echo ' - repeat 3 parameter parameters'
+  exit
+fi
+
+function_name="$1"
+shift
+
+while [[ "$3" != "" ]]; do
+  mandatory_yn="n"
+  param_name="$1"
+  datatype="$2"
+  default="$3"
+  if [[ "$default" == "-" ]]; then
+    mandatory_yn="y"
+  fi
+  if [[ "$datatype" == "text" ]]; then
+    datatype="string"
+  fi
+  if [[ "$datatype" == "string" && "$default" != "default" ]]; then
+    default="'$3'"
+  fi
+  if [[ "$default" == "default" ]]; then
+    default="DEFAULT${param_name^^}"
+  fi
+  if [[ "$default" == "'none'" ]]; then
+    default="''"
+  fi
+  if [[ "$mandatory_yn" == "y" ]]; then
+    comList="${comList}\n *   - @param {${datatype}} ${param_name} DESC (mandatory parameter)."
+    parList="${parList}\n  const ${param_name} = pObj.${param_name};"
+    # parList="${parList}\n  (!${param_name}) && console.error(function:', '${function_name}', "
+    # parList="${parList}\n      '- Mandatory parameter \"${param_name}\" missing');'"
+    parList="${parList}\n  if (!${param_name}) throw Error('Mandatory parameter \"${param_name}\" missing');"
+  else
+    comList="${comList}\n *   - @param {${datatype}} ${param_name} DESC (default: ${default})."
+    parList="${parList}\n  const ${param_name} = pObj.${param_name}?pObj.${param_name}:${default};"
+  fi
+  shift 3
+done
+
+echo '/**'
+echo ' * DESC.'
+echo ' * @param {obj} pObj - An object containing the parameters:'
+echo -e "${comList/\\n/}"
+echo ' * @return {DATATYPE} DESC.'
+echo ' */'
+echo 'function '${function_name}'(pObj={}) {'
+echo -e "${parList/\\n/}"
+echo '}'
+
+
+echo
+echo Notes:
+echo ------
+echo - Datatype string or text will result in quoted default values.
+echo - Default \"none\" will become \'\'
+echo - default \"default\" will become DEFAULT[PARAM_NAME]
